@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Importar Arquivo</title>
+</head>
+<body>
+    <h1>Importar Arquivo</h1>
+
+    <form action="{% url 'importar_arquivo' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="file" required>
+        <button type="submit">Importar</button>
+    </form>
+</body>
+</html>
