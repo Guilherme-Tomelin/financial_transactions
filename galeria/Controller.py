@@ -2,6 +2,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.http import HttpResponse
 import os
+from io import StringIO
 import csv
 
 
@@ -32,7 +33,13 @@ class Controller:
         print(f"Arquivo importado: {nome_arquivo}")
         print(f"Tamanho do arquivo: {tamanho_arquivo} MB")
 
-        conteudo_arquivo = arquivo.read()
-        print(conteudo_arquivo)
+        conteudo_arquivo = arquivo.read().decode('utf-8')  # Lê o conteúdo do arquivo em memória como uma sequência de bytes e decodifica para UTF-8
+        arquivo_csv = StringIO(conteudo_arquivo)  # Cria um objeto 'StringIO' para manipular o conteúdo do arquivo como um arquivo CSV
+
+        leitor_csv = csv.reader(arquivo_csv)
+        primeira_linha = next(leitor_csv)
+        primeira_data = primeira_linha[-1]
+        for linha in leitor_csv:
+            print(primeira_data)
 
         return HttpResponse()
