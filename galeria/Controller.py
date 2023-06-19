@@ -7,123 +7,110 @@ from io import StringIO
 import csv
 
 
-"""
-O arquivo controller.py é um módulo que contém a definição da classe 
-Controller e métodos relacionados que representam a lógica de controle 
-da sua aplicação. Ele é usado para organizar e centralizar a lógica de 
-negócios do seu aplicativo Django.
-"""
-
-"""
-Arquivo CSV é composto por:
-Banco origem
-Agência origem
-Conta origem
-Banco destino
-Agência destino
-Conta destino
-Valor da transação
-Data e hora da transação
-"""
-
 class Controller:
     def importar_arquivo(request):
         arquivo = request.FILES['file']
         nome_arquivo = arquivo.name
-        tamanho_arquivo = arquivo.size / (1024 * 1024)  # arquivo.size retorna tamanho em bytes e calcula convertendo para megabytes
+        extensao_arquivo = os.path.splitext(nome_arquivo)[1].lower()
+
+        if extensao_arquivo != '.csv':
+            return HttpResponse("Erro: O arquivo importado tem um formato inválido. O arquivo deve ser do tipo CSV.")
+
+        tamanho_arquivo = arquivo.size / (1024 * 1024)
         print(f"Arquivo importado: {nome_arquivo}")
         print(f"Tamanho do arquivo: {tamanho_arquivo} MB")
 
-        conteudo_arquivo = arquivo.read().decode('utf-8')  # Lê o conteúdo do arquivo em memória como uma sequência de bytes e decodifica para UTF-8
-        arquivo_csv = StringIO(conteudo_arquivo)  # Cria um objeto 'StringIO' para manipular o conteúdo do arquivo como um arquivo CSV
-        
-        linhas_validas, linhas_invalidas = valida_linhas(arquivo_csv)
+        conteudo_arquivo = arquivo.read().decode('utf-8')
+        arquivo_csv = StringIO(conteudo_arquivo)
+
+        primeira_linha = next(csv.reader(arquivo_csv), None) #Se o arquivo CSV estiver vazio, ou seja, não contiver nenhuma linha, a saída será None.
+        if arquivo_vazio(primeira_linha):
+            arquivo_csv.close()
+            return HttpResponse("Erro: O arquivo está vazio.")
+
+        linhas_validas, linhas_invalidas = valida_linhas(arquivo_csv, primeira_linha)
 
         print("-------Linhas Validas-------")
-
         for i, linha in enumerate(linhas_validas):
             print(f"{i} - {linha}")
 
         print("-------Linhas Invalidas-------")
-
-
         for i, linha in enumerate(linhas_invalidas):
             print(f"{i} - {linha}")
 
         arquivo_csv.close()
-        return HttpResponse()
-    
-def valida_linhas(arquivo_csv):
+        return HttpResponse("Arquivo CSV importado com sucesso.")
+
+def arquivo_vazio(primeira_linha):
 
     """
-    - Utiliza as funções booleanas para fazer todas as validações e retornar uma tupla com uma lista das linhas validas e outra com as linhas invalidas.
+    Verifica se o arquivo CSV está vazio.
 
-    - Verifica se o arquivo está vazio
-    - Verifica se tem alguma data diferente das demais
-    - Verifica se tem linhas duplicadas
-    - Verifica se tem algum dado faltando
+    Utiliza a primeira linha do csv e verifica se seu conteúdo é "None"
+
+
+    Args:
+        primeira_linha (list): A primeira linha do arquivo CSV.
+
+    Returns:
+        bool: True se o arquivo CSV estiver vazio, False caso contrário.
+    """
+
+    if primeira_linha is None:
+        return True
+    else:
+        return False
+
+def valida_linhas(arquivo_csv, primeira_linha):
+
+    """
+    Realiza a validação das linhas de um arquivo CSV.
+
+    Verifica se existem datas diferentes das demais linhas,
+    identifica e ignora linhas duplicadas e verifica se há
+    campos faltando.
+
+    Args:
+        arquivo_csv (io.StringIO): O objeto de arquivo CSV.
+        primeira_linha (list): A primeira linha do arquivo CSV.
+
+    Returns:
+        tuple: Uma tupla contendo a lista de linhas válidas e a
+        lista de linhas inválidas.
     """
 
     linhas_validas = []
     linhas_invalidas = []
 
-    
-    leitor_csv = csv.reader(arquivo_csv)
-    primeira_linha = next(leitor_csv)
+    linhas_validas.append(primeira_linha)
+    primeira_data = retorna_data(primeira_linha)
+    padrao_data = re.compile(r"[0-9]{4}[-][0-9]{2}[-][0-9]{2}")
+    for linha in csv.reader(arquivo_csv):
+        if not datas_distintas(linha, primeira_data, padrao_data):
+            linhas_invalidas.append(linha)
+        elif linhas_duplicadas(linha, linhas_validas):
+            continue
+        elif falta_informacao(linha):
+            linhas_invalidas.append(linha)
+        else:
+            linhas_validas.append(linha)
+            print("Linha válida adicionada")
+    return linhas_validas, linhas_invalidas
 
-    if not arquivo_vazio(arquivo_csv):
-        linhas_validas.append(primeira_linha)
-        primeira_data = retorna_data(arquivo_csv)
-        padrao_data = re.compile(r"[0-9]{4}[-][0-9]{2}[-][0-9]{2}")
-        for linha in leitor_csv:
-            if not datas_distintas(linha, primeira_data, padrao_data):
-                linhas_invalidas.append(linha)
-            elif linhas_duplicadas(linha, linhas_validas):
-                continue
-            elif falta_informacao(linha):
-                linhas_invalidas.append(linha)
-            else:
-                linhas_validas.append(linha)
-                print("Linha valida adicionada")
-            
-        return linhas_validas, linhas_invalidas
+def retorna_data(linha):
+
+    """
+    Recebe a primeira linha do CSV, utiliza regex para encontrar a primeira data presente.
+
+
+    Args:
+        linha (list): Uma linha do arquivo CSV.
+    Returns:
+        str: Uma string formatada com o conteúdo da primeira data, excluindo o horário.
         
-
-def arquivo_vazio(arquivo_csv):
-
-    """
-    - Retorna TRUE se o arquivo estiver vazio e FALSE se o arquivo não estiver vazio.
-
-    - Se o arquivo que foi feito upload estiver vazio, uma mensagem de 
-    erro deve ser exibida para o usuário, indicando tal situação;
-
-    - next(leitor_csv) tenta obter a primeira linha do arquivo CSV usando a função next().
-    A função next() retorna o próximo item de um iterável, no caso, o leitor_csv. Se não houver próxima 
-    linha, a exceção StopIteration será lançada.
     """
 
-    arquivo_csv.seek(0)
-    leitor_csv = csv.reader(arquivo_csv)
-
-    try:
-        primeira_linha = next(leitor_csv)
-    except StopIteration:
-        print("Erro: O arquivo está vazio.")
-        return True #Arquivo vazio
-    print("O arquivo não está vazio")
-    return False #Arquivo não está vazio
-
-def retorna_data(arquivo_csv):
-
-    """
-    - Retorna a data da primeira linha do arquivo CSV
-    - Exemplo de data 2022-01-01T07:30:00
-    """
-
-    leitor_csv = csv.reader(arquivo_csv)
-    primeira_linha = next(leitor_csv)
-    primeira_data = primeira_linha[-1]
-
+    primeira_data = linha[-1]
     padrao_data = re.compile(r"[0-9]{4}[-][0-9]{2}[-][0-9]{2}")
     busca_data = padrao_data.search(primeira_data)
 
@@ -133,14 +120,18 @@ def retorna_data(arquivo_csv):
     primeira_data_formatada = busca_data.group()
     return primeira_data_formatada
 
-
 def datas_distintas(linha, primeira_data, padrao_data):
 
     """
-    - Retorna TRUE se a linha for válida, Retorna FALSE se for inválida (diferente da primeira)
+    Recebe a primeira linha do CSV, utiliza regex para encontrar a primeira data presente.
 
-    - Se alguma transação posterior estiver com outra data diferente, 
-    ela deve ser ignorada e não ser salva no banco de dados;
+    Args:
+        linha (list): Uma linha do arquivo CSV.
+        primeira_data: primeira data encontrada no csv através da função retorna_data
+        padrao_data: o padrão criado através de regex "[0-9]{4}[-][0-9]{2}[-][0-9]{2}"
+    Returns:
+        bool: Retorna True caso a data seja válida e False caso contrário
+        
     """
 
     busca_data = padrao_data.search(linha[-1])
@@ -152,15 +143,18 @@ def datas_distintas(linha, primeira_data, padrao_data):
         print(f"Linha: << {linha} >>")
         return False
 
-
-
 def linhas_duplicadas(linha, linhas_validas):
 
     """
-    - Retorna TRUE se não encontrar nenhuma duplicata no CSV, retorna FALSE se encontrar alguma duplicata.
+    Verifica se existem linhas duplicadas no arquivo CSV.
 
-    - A aplicação não deve "duplicar" transações de um determinado dia, ou seja, se o upload de transações de um determinado dia já tiver sido realizado anteriormente, uma mensagem de erro deve ser exibida ao usuário, indicando que as transações daquela data já foram realizadas;
+    Percorre a lista de linhas validas e verifica se a linha atual já está contida na lista.
 
+    Args:
+        linha (list): Uma linha do arquivo CSV.
+        linhas_validas: lita de linhas validas
+    Returns:
+        bool: Retorna True caso uma linha duplicada seja encontrada e False caso contrário.
     """
 
     for linha_valida in linhas_validas:
@@ -171,9 +165,17 @@ def linhas_duplicadas(linha, linhas_validas):
     return False
 
 def falta_informacao(linha):
+
     """
-    - Retorna TRUE se falta alguma informação, retorna FALSE se não falta nenhuma informação.
-    - Todas as informações da transação são obrigatórias, ou seja, se alguma transação estiver com alguma informação faltando, ela também deve ser ignorada e nao ser salva no banco de dados.
+    Verifica se há alguma informação faltando na linha do arquivo CSV.
+
+    Percorre a lista de campos da linha e verifica se algum campo está vazio ou contém uma string vazia.
+
+    Args:
+        linha (list): Uma linha do arquivo CSV.
+
+    Returns:
+        bool: True se houver alguma informação faltando na linha, False caso contrário.
     """
 
     if any(not campo for campo in linha):
@@ -181,5 +183,3 @@ def falta_informacao(linha):
         print(f"Linha: << {linha} >>")
         return True
     return False
-
-            
