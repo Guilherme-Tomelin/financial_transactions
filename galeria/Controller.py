@@ -57,6 +57,11 @@ def valida_linhas(arquivo_csv):
 
     """
     - Utiliza as funções booleanas para fazer todas as validações e retornar uma tupla com uma lista das linhas validas e outra com as linhas invalidas.
+
+    - Verifica se o arquivo está vazio
+    - Verifica se tem alguma data diferente das demais
+    - Verifica se tem linhas duplicadas
+    - Verifica se tem algum dado faltando
     """
 
     linhas_validas = []
@@ -68,21 +73,16 @@ def valida_linhas(arquivo_csv):
 
     if not arquivo_vazio(arquivo_csv):
         linhas_validas.append(primeira_linha)
-        # Verifica se o arquivo está vazio
+        primeira_data = retorna_data(arquivo_csv)
+        padrao_data = re.compile(r"[0-9]{4}[-][0-9]{2}[-][0-9]{2}")
         for linha in leitor_csv:
-            # elif not datas_distintas(arquivo_csv):
-            #     print("Datas distintas iniciada")
-            #     # Verifica se a data da linha é diferente da primeira data
-            #     linhas_invalidas.append(linha)
-            #     print("Datas distintas finalizada")
-            if not linhas_duplicadas(linha, linhas_validas):
-                # Verifica se existem linhas duplicadas
+            if not datas_distintas(linha, primeira_data, padrao_data):
                 linhas_invalidas.append(linha)
+            elif linhas_duplicadas(linha, linhas_validas):
+                continue
             elif falta_informacao(linha):
-                # Verifica se há informações faltando na linha
                 linhas_invalidas.append(linha)
             else:
-                # Se nenhuma validação falhou, a linha é considerada válida
                 linhas_validas.append(linha)
                 print("Linha valida adicionada")
             
@@ -120,23 +120,21 @@ def retorna_data(arquivo_csv):
     - Exemplo de data 2022-01-01T07:30:00
     """
 
-    arquivo_csv.seek(0)
     leitor_csv = csv.reader(arquivo_csv)
     primeira_linha = next(leitor_csv)
     primeira_data = primeira_linha[-1]
 
-    padrao = re.compile("[0-9]{4}[-][0-9]{2}[-][0-9]{2}")
-    busca = padrao.search(str(primeira_data))
+    padrao_data = re.compile(r"[0-9]{4}[-][0-9]{2}[-][0-9]{2}")
+    busca_data = padrao_data.search(primeira_data)
 
-    if busca is None:
+    if busca_data is None:
         raise ValueError("Data não encontrada no formato esperado")
 
-    primeira_data_formatada = busca.group()
-
+    primeira_data_formatada = busca_data.group()
     return primeira_data_formatada
 
 
-def datas_distintas(arquivo_csv):
+def datas_distintas(linha, primeira_data, padrao_data):
 
     """
     - Retorna TRUE se a linha for válida, Retorna FALSE se for inválida (diferente da primeira)
@@ -145,22 +143,15 @@ def datas_distintas(arquivo_csv):
     ela deve ser ignorada e não ser salva no banco de dados;
     """
 
-    #Exemplo de data 2022-01-01T07:30:00
+    busca_data = padrao_data.search(linha[-1])
 
-    primeira_data = retorna_data(arquivo_csv)
-    arquivo_csv.seek(0)
-    leitor_csv = csv.reader(arquivo_csv)
-    for linha in leitor_csv:
+    if busca_data and busca_data.group() == primeira_data:
+        return True
+    else:
+        print("Linha inválida encontrada: A data não corresponde com as demais.")
+        print(f"Linha: << {linha} >>")
+        return False
 
-        padrao = re.compile("[0-9]{4}[-][0-9]{2}[-][0-9]{2}")
-        busca = padrao.search(str(linha))
-
-        if busca == primeira_data:
-            continue
-        elif busca != primeira_data:
-            return False
-        
-    return True
 
 
 def linhas_duplicadas(linha, linhas_validas):
@@ -172,11 +163,12 @@ def linhas_duplicadas(linha, linhas_validas):
 
     """
 
-    if linha in linhas_validas:
-        print("Erro: As linhas não devem se repetir.")
-        print(f"Linha: << {linha} >>")
-        return False
-    return True
+    for linha_valida in linhas_validas:
+        if linha == linha_valida:
+            print("Linha duplicada encontrada: Duplicata ignorada.")
+            print(f"Linha: << {linha} >>")
+            return True
+    return False
 
 def falta_informacao(linha):
     """
@@ -185,7 +177,7 @@ def falta_informacao(linha):
     """
 
     if any(not campo for campo in linha):
-        print("Erro: A linha tem um ou mais dados faltando.")
+        print("Linha inválida encontrada: A linha tem um ou mais dados faltando.")
         print(f"Linha: << {linha} >>")
         return True
     return False
