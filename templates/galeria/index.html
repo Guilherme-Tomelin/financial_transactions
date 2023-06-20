@@ -1,16 +1,21 @@
 {% extends 'galeria/base.html' %}
 {% load static %}
 {% block content %}
-    <div class="min-h-screen flex flex-col justify-center bg-indigo-600">
+    <div class="min-h-screen flex flex-col justify-center bg-blue-100">
         <div class="bg-white mx-auto max-w-md py-8 px-10 shadow rounded-lg">
             <div class="mb-4">
-                <img src="{% static  '/assets/undraw.png' %}" alt="imagem undraw">
+                <img src="{% static '/assets/undraw.png' %}" alt="Imagem Undraw">
             </div>
-            <h1>Importar Arquivo</h1>
+            <h1 class="text-2xl font-bold">Importar Arquivo</h1>
             <form action="{% url 'importar_arquivo' %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
-                <input class ="mb-4" type="file" name="file" required>
-                <button class="inline-block w-full px-8 py-4 leading-nome text-white bg-indigo-600 hover:bg-indigo-700 font-semibold rounded shadow" type="submit">Importar</button>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="file">Selecione um arquivo</label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="file" type="file" name="file" required>
+                </div>
+                <div class="flex justify-end">
+                    <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">Importar</button>
+                </div>
             </form>
         </div>
     </div>
