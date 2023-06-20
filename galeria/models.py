@@ -3,10 +3,23 @@ from django.db import models
 """O arquivo models.py no Django é onde você define as classes de modelo, 
 que representam as tabelas do banco de dados. Simplificadamente, 
 o modelo é usado para definir a estrutura e os tipos de dados dos 
-objetos que serão armazenados no banco de dados."""
+objetos que serão armazenados no banco de dados.
+
+Arquivo CSV é composto por:
+Banco origem
+Agência origem
+Conta origem
+Banco destino
+Agência destino
+Conta destino
+Valor da transação
+Data e hora da transação
+"""
+
+
 
 class Transacao(models.Model):
-    banco_origem = models.CharField(max_length=7, null = False, blank = False)
+    banco_origem = models.CharField(max_length=100, null = False, blank = False)
     agencia_origem = models.IntegerField(null = False, blank = False)
     conta_origem = models.CharField(max_length=7, null = False, blank = False)
     banco_destino = models.CharField(max_length=100, null = False, blank = False)

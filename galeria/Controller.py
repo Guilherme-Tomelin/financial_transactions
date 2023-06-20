@@ -5,6 +5,7 @@ import os
 import re
 from io import StringIO
 import csv
+from .models import Transacao
 
 
 class Controller:
@@ -39,6 +40,9 @@ class Controller:
             print(f"{i} - {linha}")
 
         arquivo_csv.close()
+
+        salvar_transacoes(linhas_validas)
+
         return HttpResponse("Arquivo CSV importado com sucesso.")
 
 def arquivo_vazio(primeira_linha):
@@ -183,3 +187,18 @@ def falta_informacao(linha):
         print(f"Linha: << {linha} >>")
         return True
     return False
+
+def salvar_transacoes(linhas_validas):
+    for linha in linhas_validas:
+        nova_linha = Transacao(
+            banco_origem=linha[0],
+            agencia_origem=linha[1],
+            conta_origem=linha[2],
+            banco_destino=linha[3],
+            agencia_destino=linha[4],
+            conta_destino=linha[5],
+            valor_da_transação=linha[6],
+            data_e_hora_da_transacao=linha[7]
+        )
+        nova_linha.save()
+    print("Linhas válidas adicionadas à tabela de transações.")
