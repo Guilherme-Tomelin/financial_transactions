@@ -27,7 +27,7 @@ class Transacao(models.Model):
     conta_destino = models.CharField(max_length=7, null = False, blank = False)
     valor_da_transação = models.DecimalField(max_digits=10, decimal_places=2)
     data_e_hora_da_transacao = models.DateTimeField(null = False, blank = False)
-
+    
     def __str__(self):
         return f"""
             Banco origem [{self.banco_origem}]
@@ -39,3 +39,8 @@ class Transacao(models.Model):
             Valor da transação [{self.valor_da_transação}]
             Data e hora da transação [{self.data_e_hora_da_transacao}]
         """
+
+class Importacoes(models.Model):
+    data_transacoes = models.DateField()
+    data_importacao = models.DateTimeField()
+

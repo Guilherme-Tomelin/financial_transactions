@@ -2,7 +2,7 @@
 {% load static %}
 {% block content %}
     <div class="min-h-screen flex flex-col justify-center bg-blue-100">
-        <div class="bg-white mx-auto max-w-md py-8 px-10 shadow rounded-lg">
+        <div class="bg-white mx-auto max-w-md py-8 px-10 shadow rounded-lg overflow-y-auto border-2 border-blue-500">
             <div class="mb-4">
                 <img src="{% static '/assets/undraw.png' %}" alt="Imagem Undraw">
             </div>
@@ -17,6 +17,25 @@
                     <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">Importar</button>
                 </div>
             </form>
+            
+            <div class="max-h-48 overflow-y-auto my-8 overflow-hidden">
+                <table class="mx-auto max-w-md bg-white shadow-md rounded-lg">
+                    <thead>
+                        <tr>
+                            <th class="sticky top-0 bg-white py-2 px-4 border-b">Data das Transações</th>
+                            <th class="sticky top-0 bg-white py-2 px-4 border-b">Data da Importação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for importacao in importacoes %}
+                            <tr>
+                                <td class="py-2 px-4 border-b">{{ importacao.data_transacoes }}</td>
+                                <td class="py-2 px-4 border-b">{{ importacao.data_importacao }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 {% endblock %}
