@@ -197,6 +197,8 @@ def falta_informacao(linha):
         return True
     return False
 
+#--------------------------Banco--------------------------
+
 def salvar_transacoes(linhas_validas):
     for linha in linhas_validas:
         nova_linha = Transacao(

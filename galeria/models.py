@@ -19,6 +19,8 @@ Data e hora da transação
 
 
 class Transacao(models.Model):
+
+
     banco_origem = models.CharField(max_length=100, null = False, blank = False)
     agencia_origem = models.IntegerField(null = False, blank = False)
     conta_origem = models.CharField(max_length=7, null = False, blank = False)
