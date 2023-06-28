@@ -19,18 +19,19 @@ def login(request):
         form = LoginForms(request.POST)
 
         if form.is_valid():
-            email_login = form['email_login'].value()
+            nome = form['nome_login'].value()
             senha = form['senha'].value()
 
             usuario = auth.authenticate(
                 request,
-                email=email_login,
+                username=nome,
                 password=senha
             )
 
             if usuario is not None:
+                print("Caiu no if")
                 auth.login(request, usuario)
-                messages.success(request, f"{email_login} agora está logado.")
+                messages.success(request, f"{nome} agora está logado.")
                 return redirect('index')
             else:
                 messages.error(request, "Erro ao efetuar Login.")
@@ -38,8 +39,9 @@ def login(request):
 
     return render(request, "usuarios/login.html", {"form": form})
 
-
 def cadastro(request):
+        
+
         form = CadastroForms()
 
         if request.method == 'POST':
@@ -89,5 +91,7 @@ def enviar_email(nome, email_cadastro, senha_aleatoria):
     except Exception as e:
         print(f'Erro ao enviar o email: {e}')
 
-
-
+def logout(request):
+    auth.logout(request)
+    messages.success(request, "Logout efetuado com sucesso!")
+    return redirect('login')

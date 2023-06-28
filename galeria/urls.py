@@ -5,6 +5,6 @@ from . import views
 #path('caminho/', funcao, name='nome_da_rota')
 
 urlpatterns = [
-    path('',index),
+    path('',index, name='index'),
     path('importar', views.importar_arquivo, name='importar_arquivo'),
 ]

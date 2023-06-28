@@ -2,8 +2,8 @@ from django import forms
 
 class LoginForms(forms.Form):
 
-    email_login = forms.CharField(
-        label="Email",
+    nome_login = forms.CharField(
+        label="Nome",
         required=True,
         max_length=100,
         widget=forms.TextInput(

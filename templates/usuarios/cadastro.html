@@ -2,6 +2,17 @@
 {% load static %}
 
 {% block content %}
+    <header class="bg-blue-600 text-white py-4 px-8">
+        <a href="/" class="text-white text-4xl font-bold mb-2 cursor-pointer">Financial Transactions<br><span class="text-lg">Projeto Django</span></a>
+            {% for message in messages %}
+        <div>
+            <p id="messages">{{message}}</p>
+        </div>
+            {% endfor %}
+        <nav class="flex justify-left mt-4">
+            <a href="{% url 'login' %}" class="px-4 py-2 mx-2 rounded-lg bg-white text-blue-600 font-bold hover:bg-blue-600 hover:text-white hover:shadow-lg transition duration-300 ease-in-out">Login</a>
+        </nav>
+    </header>
     <div class="min-h-screen flex flex-col justify-center bg-blue-100">
         <div class="bg-white mx-auto max-w-md py-8 px-10 shadow rounded-lg overflow-y-auto border-2 border-blue-500">
             <div class="mb-4">

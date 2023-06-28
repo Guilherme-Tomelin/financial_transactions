@@ -8,10 +8,17 @@ from io import StringIO
 import csv
 from .models import Transacao, Importacoes
 from datetime import datetime
+from django.contrib import messages
+from django.shortcuts import render, redirect
 
 #views.py serve para trabalhar a lógica por trás das rotas
 
 def index(request):
+    if not request.user.is_authenticated:
+        messages.error(request, 'Usuário não logado')
+        return redirect('login')
+
+
     importacoes = Importacoes.objects.all()
 
     return render(request, 'galeria/index.html', {'importacoes': importacoes})
